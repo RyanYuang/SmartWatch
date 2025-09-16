@@ -1,0 +1,2 @@
+source /Users/yuangryan/Documents/WorkSpace/MCU/ESP32/SmartWatch/build/bootloader/gdbinit/symbols
+source /Users/yuangryan/Documents/WorkSpace/MCU/ESP32/SmartWatch/build/bootloader/gdbinit/connect

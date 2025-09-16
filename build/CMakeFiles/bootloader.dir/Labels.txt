@@ -1,0 +1,13 @@
+# Target labels
+ bootloader
+# Source files and their labels
+/Users/yuangryan/Documents/WorkSpace/MCU/ESP32/SmartWatch/build/CMakeFiles/bootloader
+/Users/yuangryan/Documents/WorkSpace/MCU/ESP32/SmartWatch/build/CMakeFiles/bootloader.rule
+/Users/yuangryan/Documents/WorkSpace/MCU/ESP32/SmartWatch/build/CMakeFiles/bootloader-complete.rule
+/Users/yuangryan/Documents/WorkSpace/MCU/ESP32/SmartWatch/build/bootloader-prefix/src/bootloader-stamp/bootloader-build.rule
+/Users/yuangryan/Documents/WorkSpace/MCU/ESP32/SmartWatch/build/bootloader-prefix/src/bootloader-stamp/bootloader-configure.rule
+/Users/yuangryan/Documents/WorkSpace/MCU/ESP32/SmartWatch/build/bootloader-prefix/src/bootloader-stamp/bootloader-download.rule
+/Users/yuangryan/Documents/WorkSpace/MCU/ESP32/SmartWatch/build/bootloader-prefix/src/bootloader-stamp/bootloader-install.rule
+/Users/yuangryan/Documents/WorkSpace/MCU/ESP32/SmartWatch/build/bootloader-prefix/src/bootloader-stamp/bootloader-mkdir.rule
+/Users/yuangryan/Documents/WorkSpace/MCU/ESP32/SmartWatch/build/bootloader-prefix/src/bootloader-stamp/bootloader-patch.rule
+/Users/yuangryan/Documents/WorkSpace/MCU/ESP32/SmartWatch/build/bootloader-prefix/src/bootloader-stamp/bootloader-update.rule

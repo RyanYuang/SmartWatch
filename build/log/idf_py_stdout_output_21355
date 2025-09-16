@@ -1,0 +1,19 @@
+Command: ninja flash
+[1/5] cd /Users/yuangryan/Documents/WorkSpace/MCU/ESP32/SmartWatch/build/esp-idf/esptool_py && /Users/yuangryan/.espressif/python_env/idf5.5_py3.9_env/bin/python /Users/yuangryan/esp/esp-idf/components/partition_table/check_sizes.py --offset 0x8000 partition --type app /Users/yuangryan/Documents/WorkSpace/MCU/ESP32/SmartWatch/build/partition_table/partition-table.bin /Users/yuangryan/Documents/WorkSpace/MCU/ESP32/SmartWatch/build/SmartWatch.bin
+SmartWatch.bin binary size 0x76260 bytes. Smallest app partition is 0x100000 bytes. 0x89da0 bytes (54%) free.
+[2/5] Performing build step for 'bootloader'
+[1/1] cd /Users/yuangryan/Documents/WorkSpace/MCU/ESP32/SmartWatch/build/bootloader/esp-idf/esptool_py && /Users/yuangryan/.espressif/python_env/idf5.5_py3.9_env/bin/python /Users/yuangryan/esp/esp-idf/components/partition_table/check_sizes.py --offset 0x8000 bootloader 0x0 /Users/yuangryan/Documents/WorkSpace/MCU/ESP32/SmartWatch/build/bootloader/bootloader.bin
+Bootloader binary size 0x5240 bytes. 0x2dc0 bytes (36%) free.
+[3/5] No install step for 'bootloader'
+[4/5] Completed 'bootloader'
+[4/5] cd /Users/yuangryan/esp/esp-idf/components/esptool_py && /Applications/CMake.app/Contents/bin/cmake -D IDF_PATH=/Users/yuangryan/esp/esp-idf -D "SERIAL_TOOL=/Users/yuangryan/.espressif/python_env/idf5.5_py3.9_env/bin/python;;/Users/yuangryan/esp/esp-idf/components/esptool_py/esptool/esptool.py;--chip;esp32s3" -D "SERIAL_TOOL_ARGS=--before=default_reset;--after=hard_reset;write_flash;@flash_args" -D WORKING_DIRECTORY=/Users/yuangryan/Documents/WorkSpace/MCU/ESP32/SmartWatch/build -P /Users/yuangryan/esp/esp-idf/components/esptool_py/run_serial_tool.cmake
+esptool.py --chip esp32s3 -p /dev/tty.usbmodem1144301 -b 460800 --before=default_reset --after=hard_reset write_flash --flash_mode dio --flash_freq 80m --flash_size 2MB 0x0 bootloader/bootloader.bin 0x10000 SmartWatch.bin 0x8000 partition_table/partition-table.bin
+esptool.py v4.10.dev2
+Serial port /dev/tty.usbmodem1144301
+
+A fatal error occurred: Could not open /dev/tty.usbmodem1144301, the port is busy or doesn't exist.
+([Errno 16] could not open port /dev/tty.usbmodem1144301: [Errno 16] Resource busy: '/dev/tty.usbmodem1144301')
+
+FAILED: [code=1] CMakeFiles/flash /Users/yuangryan/Documents/WorkSpace/MCU/ESP32/SmartWatch/build/CMakeFiles/flash 
+cd /Users/yuangryan/esp/esp-idf/components/esptool_py && /Applications/CMake.app/Contents/bin/cmake -D IDF_PATH=/Users/yuangryan/esp/esp-idf -D "SERIAL_TOOL=/Users/yuangryan/.espressif/python_env/idf5.5_py3.9_env/bin/python;;/Users/yuangryan/esp/esp-idf/components/esptool_py/esptool/esptool.py;--chip;esp32s3" -D "SERIAL_TOOL_ARGS=--before=default_reset;--after=hard_reset;write_flash;@flash_args" -D WORKING_DIRECTORY=/Users/yuangryan/Documents/WorkSpace/MCU/ESP32/SmartWatch/build -P /Users/yuangryan/esp/esp-idf/components/esptool_py/run_serial_tool.cmake
+ninja: build stopped: subcommand failed.
