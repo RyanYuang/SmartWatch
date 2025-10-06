@@ -19,6 +19,9 @@
 #include "esp_lvgl_port_priv.h"
 #include "lvgl.h"
 
+/* RTOS */
+#include "esp_task_wdt.h"
+
 static const char *TAG = "LVGL";
 
 #define ESP_LVGL_PORT_TASK_MUX_DELAY_MS    10000
@@ -88,6 +91,10 @@ esp_err_t lvgl_port_init(const lvgl_port_cfg_t *cfg)
         res = xTaskCreate(lvgl_port_task, "taskLVGL", cfg->task_stack, xTaskGetCurrentTaskHandle(), cfg->task_priority, &lvgl_port_ctx.lvgl_task);
     } else {
         res = xTaskCreatePinnedToCore(lvgl_port_task, "taskLVGL", cfg->task_stack, xTaskGetCurrentTaskHandle(), cfg->task_priority, &lvgl_port_ctx.lvgl_task, cfg->task_affinity);
+    }
+    if(lvgl_port_ctx.lvgl_task != NULL) {
+        ESP_LOGI(TAG, "Task created successfully");
+        esp_task_wdt_add(lvgl_port_ctx.lvgl_task);
     }
     ESP_GOTO_ON_FALSE(res == pdPASS, ESP_FAIL, err, TAG, "Create LVGL task fail!");
 
@@ -241,6 +248,7 @@ static void lvgl_port_task(void *arg)
     ESP_LOGI(TAG, "Starting LVGL task");
     lvgl_port_ctx.running = true;
     while (lvgl_port_ctx.running) {
+        esp_task_wdt_reset();
         /* Wait for queue or timeout (sleep task) */
         TickType_t wait = (pdMS_TO_TICKS(task_delay_ms) >= 1 ? pdMS_TO_TICKS(task_delay_ms) : 1);
         events = xEventGroupWaitBits(lvgl_port_ctx.lvgl_events, 0xFF, pdTRUE, pdFALSE, wait);

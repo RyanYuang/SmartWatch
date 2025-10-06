@@ -27,7 +27,6 @@ extern "C" {
  *********************/
 
 #include "../../../display/lv_display.h"
-#define LV_USE_GENERIC_MIPI 1
 
 #if LV_USE_GENERIC_MIPI
 

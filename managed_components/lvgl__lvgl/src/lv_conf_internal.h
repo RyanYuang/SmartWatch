@@ -1733,7 +1733,7 @@
     #ifdef CONFIG_LV_FONT_MONTSERRAT_30
         #define LV_FONT_MONTSERRAT_30 CONFIG_LV_FONT_MONTSERRAT_30
     #else
-        #define LV_FONT_MONTSERRAT_30 1
+        #define LV_FONT_MONTSERRAT_30 0
     #endif
 #endif
 #ifndef LV_FONT_MONTSERRAT_32
@@ -1747,7 +1747,7 @@
     #ifdef CONFIG_LV_FONT_MONTSERRAT_34
         #define LV_FONT_MONTSERRAT_34 CONFIG_LV_FONT_MONTSERRAT_34
     #else
-        #define LV_FONT_MONTSERRAT_34 1
+        #define LV_FONT_MONTSERRAT_34 0
     #endif
 #endif
 #ifndef LV_FONT_MONTSERRAT_36
