@@ -86,7 +86,7 @@ esp_err_t LCD_HW_Init(void)
         .lcd_param_bits = RYAN_LCD_PARAM_BITS,
         .spi_mode = 0,
         .pclk_hz = RYAN_LCD_PIXEL_CLK_HZ,
-        .trans_queue_depth = 10,
+        .trans_queue_depth = 20,
     };
     ESP_GOTO_ON_ERROR(esp_lcd_new_panel_io_spi((esp_lcd_spi_bus_handle_t)RYAN_LCD_SPI_NUM, 
                                                &io_config, &lcd_io), 
@@ -158,8 +158,8 @@ static esp_err_t app_lvgl_init(void)
         .task_priority = 1,       /* LVGL任务优先级 */
         .task_stack = 1024 * 5,       /* LVGL任务栈大小 */
         .task_affinity = 0,      /* LVGL任务核心绑定(-1表示不绑定) */
-        .task_max_sleep_ms = 100, /* LVGL任务最大睡眠时间 */
-        .timer_period_ms = 10      /* LVGL定时器周期 */
+        .task_max_sleep_ms = 50, /* LVGL任务最大睡眠时间 */
+        .timer_period_ms = 5      /* LVGL定时器周期 */
     };
     ESP_RETURN_ON_ERROR(lvgl_port_init(&lvgl_cfg), TAG, "LVGL port initialization failed");
     
@@ -181,12 +181,15 @@ static esp_err_t app_lvgl_init(void)
         },
         .flags = {
             .buff_dma = true,
+            // .swap_bytes = false,
+            // .buff_spiram = true,
         }
     };
     lvgl_disp = lvgl_port_add_disp(&disp_cfg);
     
     /* 开启抗锯齿 */
     lv_display_set_antialiasing(lvgl_disp, true);
+    
 
     /* 输出缓冲模式信息 */
     if(lv_display_is_double_buffered(lvgl_disp)) {
