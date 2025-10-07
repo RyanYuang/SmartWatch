@@ -1,53 +1,276 @@
-| Supported Targets | ESP32 | ESP32-C2 | ESP32-C3 | ESP32-C5 | ESP32-C6 | ESP32-C61 | ESP32-H2 | ESP32-H21 | ESP32-H4 | ESP32-P4 | ESP32-S2 | ESP32-S3 | Linux |
-| ----------------- | ----- | -------- | -------- | -------- | -------- | --------- | -------- | --------- | -------- | -------- | -------- | -------- | ----- |
+# ESP32 智能手表项目
 
-# Hello World Example
+## 项目概述
 
-Starts a FreeRTOS task to print "Hello World".
+这是一个基于ESP32微控制器的智能手表开发项目，采用ESP-IDF开发框架，集成了LVGL图形库和FreeRTOS实时操作系统。项目旨在构建一个功能完整的智能手表原型，具备时间显示、触摸交互、设置菜单等核心功能。
 
-(See the README.md file in the upper level 'examples' directory for more information about examples.)
+## 技术栈
 
-## How to use example
+- **微控制器**: ESP32系列
+- **开发框架**: ESP-IDF (Espressif IoT Development Framework)
+- **图形界面**: LVGL (Light and Versatile Graphics Library)
+- **操作系统**: FreeRTOS (实时操作系统)
+- **显示驱动**: ST7789 LCD显示屏
+- **触摸控制**: 电容式触摸屏
+- **实时时钟**: PCF85063 RTC芯片
+- **构建系统**: CMake
 
-Follow detailed instructions provided specifically for this example.
-
-Select the instructions depending on Espressif chip installed on your development board:
-
-- [ESP32 Getting Started Guide](https://docs.espressif.com/projects/esp-idf/en/stable/get-started/index.html)
-- [ESP32-S2 Getting Started Guide](https://docs.espressif.com/projects/esp-idf/en/latest/esp32s2/get-started/index.html)
-
-
-## Example folder contents
-
-The project **hello_world** contains one source file in C language [hello_world_main.c](main/hello_world_main.c). The file is located in folder [main](main).
-
-ESP-IDF projects are built using CMake. The project build configuration is contained in `CMakeLists.txt` files that provide set of directives and instructions describing the project's source files and targets (executable, library, or both).
-
-Below is short explanation of remaining files in the project folder.
+## 项目结构
 
 ```
-├── CMakeLists.txt
-├── pytest_hello_world.py      Python script used for automated testing
-├── main
-│   ├── CMakeLists.txt
-│   └── hello_world_main.c
-└── README.md                  This is the file you are currently reading
+SmartWatch/
+├── components/           # 组件模块
+│   ├── Screen/          # 屏幕显示组件
+│   │   ├── Screen.c     # 屏幕驱动和界面逻辑
+│   │   ├── Screen.h     # 屏幕组件头文件
+│   │   └── CMakeLists.txt
+│   └── PCF85063/        # RTC实时时钟组件
+│       ├── PCF85063.c   # RTC驱动实现
+│       ├── PCF85063.h   # RTC组件头文件
+│       └── CMakeLists.txt
+├── main/                # 主程序入口
+│   ├── src/            # 源代码
+│   │   ├── Init_Task.c # 系统初始化任务
+│   │   ├── RTC_Task.c  # 实时时钟任务
+│   │   ├── BLE.c       # 蓝牙通信任务
+│   │   └── Key.c       # 按键处理任务
+│   └── inc/            # 头文件
+├── .devcontainer/       # 开发容器配置
+├── CMakeLists.txt       # 项目构建配置
+├── sdkconfig           # ESP-IDF配置
+└── README.md           # 项目说明文档
 ```
 
-For more information on structure and contents of ESP-IDF projects, please refer to Section [Build System](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/build-system.html) of the ESP-IDF Programming Guide.
+## 核心功能
 
-## Troubleshooting
+### 1. 时间显示
+- 实时时钟显示（时、分）
+- 支持时间自动更新
+- 数字时钟界面设计
 
-* Program upload failure
+### 2. 触摸交互
+- 手势识别支持（滑动、点击）
+- 多级菜单导航
+- 设置界面交互
 
-    * Hardware connection is not correct: run `idf.py -p PORT monitor`, and reboot your board to see if there are any output logs.
-    * The baud rate for downloading is too high: lower your baud rate in the `menuconfig` menu, and try again.
+### 3. 屏幕管理
+- LCD背光控制（PWM调光）
+- 屏幕亮度调节
+- 显示模式切换
 
-## Technical support and feedback
+### 4. 系统设置
+- 亮度调节滑块
+- 快速设置面板
+- 菜单系统
 
-Please use the following feedback channels:
+## 硬件规格
 
-* For technical queries, go to the [esp32.com](https://esp32.com/) forum
-* For a feature request or bug report, create a [GitHub issue](https://github.com/espressif/esp-idf/issues)
+### 显示屏
+- **型号**: ST7789驱动的LCD屏幕
+- **分辨率**: 240x240像素
+- **接口**: SPI通信
+- **色彩**: 16位RGB色彩
 
-We will get back to you as soon as possible.
+### 触摸屏
+- **类型**: 电容式触摸
+- **支持**: 多点触控手势
+
+### 实时时钟
+- **芯片**: PCF85063
+- **功能**: 精确时间保持
+- **特性**: 低功耗运行
+
+## 软件架构详解
+
+### 整体架构概述
+
+本项目采用**分层模块化架构**，基于ESP-IDF框架和FreeRTOS实时操作系统，实现了硬件抽象层、驱动层、组件层和应用层的清晰分离。整个系统采用**多任务并发模型**，各功能模块独立运行，通过消息队列和互斥锁进行通信和同步。
+
+### 架构层次设计
+
+#### 1. 硬件抽象层 (Hardware Abstraction Layer)
+- **SPI总线管理**: 负责LCD显示屏和触摸屏的通信
+- **GPIO控制**: 管理背光控制、按键输入等硬件接口
+- **PWM调光**: 实现LCD背光的平滑亮度调节
+
+#### 2. 驱动层 (Driver Layer)
+- **ST7789 LCD驱动**: 240x240分辨率显示屏控制
+- **PCF85063 RTC驱动**: 实时时钟芯片驱动
+- **触摸屏驱动**: 电容式触摸输入处理
+- **BLE蓝牙驱动**: 低功耗蓝牙通信
+
+#### 3. 组件层 (Component Layer)
+采用ESP-IDF组件化设计，每个功能模块独立封装：
+
+**屏幕显示组件 (`components/Screen/`)**
+- **屏幕初始化**: LCD硬件初始化和LVGL集成
+- **界面管理**: 多级界面切换和手势识别
+- **事件处理**: 触摸事件和手势回调处理
+- **背光控制**: PWM调光算法实现
+
+**RTC时钟组件 (`components/PCF85063/`)**
+- **时间同步**: 精确时间保持和更新
+- **低功耗管理**: RTC芯片的低功耗运行
+- **时间格式化**: 时间数据的解析和显示
+
+#### 4. 应用层 (Application Layer)
+位于`main/`目录，包含核心业务逻辑：
+
+**任务管理系统**
+```c
+// 多任务并发设计
+xTaskCreate(RTC_Update_Task, "RTC_Update_Task", 2048*2, NULL, 1, &RTC_Update_Task_Handle);
+xTaskCreate(&RTC_Task, "RTC_Task", 2560, NULL, 2, &RTC_Task_Handle);
+xTaskCreate(&Screen_Task, "Screen_Task", 2560, NULL, 3, &Screen_Task_Handle);
+xTaskCreate(&nimble_host_task, "BLE_Task", 1024*3, NULL, 3, &BLE_Task_Handle);
+xTaskCreate(&Key_Task, "Key_Task", 2560, NULL, 1, &Key_Task_Handle);
+```
+
+**核心任务模块**
+- **初始化任务** (`Init_Task.c`): 系统启动和资源分配
+- **RTC任务** (`RTC_Task.c`): 实时时钟管理和更新
+- **屏幕任务** (`Screen_Task.c`): UI渲染和触摸处理
+- **BLE任务** (`BLE.c`): 蓝牙通信和数据同步
+- **按键任务** (`Key.c`): 物理按键事件处理
+
+### 通信机制设计
+
+#### 1. 消息队列通信
+```c
+// RTC时间更新队列
+rtc_update_queue = xQueueCreate(2, sizeof(struct rtc_time_t));
+rtc_queue = xQueueCreate(10, sizeof(struct rtc_time_t));
+```
+
+#### 2. 互斥锁同步
+```c
+// 资源访问保护
+rtc_mutex = xSemaphoreCreateMutex();
+```
+
+#### 3. 事件回调机制
+- **LVGL事件系统**: 处理触摸手势和界面交互
+- **FreeRTOS任务通知**: 任务间快速通信
+
+### 软件架构特点
+
+#### 1. 模块化设计
+- **高内聚低耦合**: 每个组件功能独立，接口清晰
+- **可扩展性**: 新功能可通过添加组件快速集成
+- **可维护性**: 模块独立，便于调试和测试
+
+#### 2. 实时性保障
+- **任务优先级分配**: 关键任务（屏幕刷新）高优先级
+- **中断处理优化**: 触摸和按键响应及时
+- **内存管理**: 静态分配为主，动态分配可控
+
+#### 3. 功耗优化
+- **RTC低功耗模式**: 时钟芯片在空闲时进入低功耗状态
+- **背光智能调节**: 根据使用场景动态调整亮度
+- **任务休眠机制**: 非活跃任务自动进入休眠状态
+
+### 数据流架构
+
+```
+硬件事件 → 驱动层 → 组件层 → 应用层 → 用户界面
+   ↓        ↓        ↓        ↓        ↓
+触摸输入 → 触摸驱动 → 手势识别 → 界面切换 → 屏幕更新
+   ↓        ↓        ↓        ↓        ↓
+RTC芯片 → RTC驱动 → 时间解析 → 时间显示 → 时钟界面
+   ↓        ↓        ↓        ↓        ↓
+BLE设备 → BLE驱动 → 数据解析 → 通知处理 → 信息显示
+```
+
+### 关键技术实现
+
+#### 1. LVGL图形框架集成
+- **双缓冲机制**: 避免屏幕闪烁，提升显示流畅度
+- **事件回调**: 统一处理触摸、手势等用户输入
+- **资源管理**: 字体、图片等资源的有效管理
+
+#### 2. FreeRTOS多任务调度
+- **任务优先级**: 屏幕任务(3) > RTC任务(2) > 按键任务(1)
+- **堆栈管理**: 合理分配任务堆栈空间，避免溢出
+- **任务同步**: 使用队列和信号量确保数据一致性
+
+#### 3. 硬件资源管理
+- **SPI资源分配**: LCD和触摸屏共享SPI总线
+- **GPIO冲突避免**: 合理分配GPIO引脚功能
+- **中断处理**: 确保高优先级中断的及时响应
+
+## 开发环境搭建
+
+### 前提条件
+- ESP-IDF v5.0+
+- CMake 3.16+
+- Python 3.8+
+
+### 构建步骤
+```bash
+# 设置ESP-IDF环境
+source $IDF_PATH/export.sh
+
+# 配置项目
+idf.py menuconfig
+
+# 构建项目
+idf.py build
+
+# 烧录到设备
+idf.py -p PORT flash
+
+# 监控输出
+idf.py -p PORT monitor
+```
+
+## 使用说明
+
+### 基本操作
+1. **主界面**: 显示当前时间
+2. **滑动操作**: 左右滑动切换界面
+3. **点击设置**: 进入设置菜单调整参数
+
+### 界面导航
+- **主时钟界面**: 默认显示界面
+- **快速设置**: 从边缘滑动呼出
+- **菜单系统**: 功能选择界面
+- **设置界面**: 系统参数调整
+
+## 扩展功能
+
+项目设计支持以下扩展功能：
+- 蓝牙连接（手机通知同步）
+- 运动传感器集成（计步器）
+- 电池管理（电量显示）
+- 天气信息显示
+- 音乐播放控制
+
+## 架构优势
+
+1. **可维护性**: 清晰的层次结构便于代码维护和调试
+2. **可扩展性**: 模块化设计支持功能快速扩展
+3. **稳定性**: 多任务间的同步机制确保系统稳定运行
+4. **性能优化**: 合理的任务调度和资源管理提升系统性能
+5. **功耗控制**: 智能的电源管理延长设备续航时间
+
+## 贡献指南
+
+欢迎提交Issue和Pull Request来改进项目：
+1. Fork本仓库
+2. 创建功能分支
+3. 提交更改
+4. 推送到分支
+5. 创建Pull Request
+
+## 许可证
+
+本项目采用MIT许可证，详见LICENSE文件。
+
+## 联系方式
+
+如有问题或建议，请通过以下方式联系：
+- 提交GitHub Issue
+- 发送邮件至项目维护者
+
+---
+作者：RyanYuang

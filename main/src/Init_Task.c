@@ -14,6 +14,7 @@ SemaphoreHandle_t rtc_mutex = NULL;
 
 void Init_Task(void* pvParament)
 {
+    
     // 创建RTC更新列表
     rtc_update_queue = xQueueCreate(2,sizeof(struct rtc_time_t));
     if(rtc_update_queue == NULL)
@@ -49,15 +50,21 @@ void Init_Task(void* pvParament)
     gpio_config(&gpio_conf);
     gpio_set_level(GPIO_NUM_42, 0);
 
+
     // 硬件初始化
     Screen_Init();
+    vTaskSuspend(lvgl_port_ctx.lvgl_task);
+    // LVGL显示
+    My_Watch_Screen();
+    vTaskResume(lvgl_port_ctx.lvgl_task);
+
+
     BLE_Init();
     PCF85063_Init();
     // 按键初始化
     KEY_Init();
         
-    // LVGL显示
-    My_Watch_Screen();
+
 
     //创建RTC时钟更新任务
     xTaskCreate(RTC_Update_Task,"RTC_Update_Task",2048*2,NULL,1,&RTC_Update_Task_Handle);

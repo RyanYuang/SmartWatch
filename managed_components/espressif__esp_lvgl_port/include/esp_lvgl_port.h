@@ -18,6 +18,7 @@
 #include "esp_lvgl_port_knob.h"
 #include "esp_lvgl_port_button.h"
 #include "esp_lvgl_port_usbhid.h"
+#include "esp_timer.h"
 
 #if LVGL_VERSION_MAJOR == 8
 #include "esp_lvgl_port_compatibility.h"
@@ -26,6 +27,22 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+/*******************************************************************************
+* Types definitions
+*******************************************************************************/
+
+typedef struct lvgl_port_ctx_s {
+    TaskHandle_t        lvgl_task;
+    SemaphoreHandle_t   lvgl_mux;
+    SemaphoreHandle_t   timer_mux;
+    EventGroupHandle_t  lvgl_events;
+    SemaphoreHandle_t   task_init_mux;
+    esp_timer_handle_t  tick_timer;
+    bool                running;
+    int                 task_max_sleep_ms;
+    int                 timer_period_ms;
+} lvgl_port_ctx_t;
 
 /**
  * @brief LVGL Port task event type
@@ -151,6 +168,8 @@ esp_err_t lvgl_port_resume(void);
  *      - ESP_ERR_INVALID_STATE if queue is not initialized (can be returned after LVGL deinit)
  */
 esp_err_t lvgl_port_task_wake(lvgl_port_event_type_t event, void *param);
+
+extern lvgl_port_ctx_t lvgl_port_ctx;
 
 #ifdef __cplusplus
 }

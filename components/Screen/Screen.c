@@ -29,7 +29,7 @@ lv_obj_t* Quick_Setting_Screen = NULL;
 lv_obj_t* Menu_Screen = NULL;
 lv_color_t* Last_Screeen_Color = NULL;
 lv_obj_t* Light_slider = NULL;
-
+lv_obj_t* Setting_Screen = NULL;
 
 /* ================================================== */
 /* 时间显示相关                                        */
@@ -42,6 +42,15 @@ bool time_update = false;
 /* LCD 硬件初始化                                     */
 /* ================================================== */
 
+//LVGL显示初始化
+lvgl_port_cfg_t lvgl_cfg = {
+        .task_priority = 1,       /* LVGL任务优先级 */
+        .task_stack = 1024 * 5,       /* LVGL任务栈大小 */
+        .task_affinity = 0,      /* LVGL任务核心绑定(-1表示不绑定) */
+        .task_max_sleep_ms = 50, /* LVGL任务最大睡眠时间 */
+        .timer_period_ms = 5      /* LVGL定时器周期 */
+    };
+
 /* ================================================== */
 /* LVGL回调函数                                        */
 /* ================================================== */
@@ -49,6 +58,10 @@ void Light_Slider_Event_Handler(lv_event_t* event);
 void Quick_Setting_Screen_Handler(lv_event_t* event);
 static void Screen_Timer_Update(lv_timer_t* timer);
 void Menu_Screen_Init(void);
+static void menu_item_event_handler(lv_event_t* e);
+static void menu_screen_gesture_handler(lv_event_t* e);
+void Setting_Screen_Init(void);
+static void Setting_Screen_Gesture_Handler(lv_event_t* e);
 esp_err_t LCD_HW_Init(void)
 {
     esp_err_t ret = ESP_OK;
@@ -154,13 +167,13 @@ err:
 static esp_err_t app_lvgl_init(void)
 {
     /* 初始化LVGL */
-    const lvgl_port_cfg_t lvgl_cfg = {
-        .task_priority = 1,       /* LVGL任务优先级 */
-        .task_stack = 1024 * 5,       /* LVGL任务栈大小 */
-        .task_affinity = 0,      /* LVGL任务核心绑定(-1表示不绑定) */
-        .task_max_sleep_ms = 50, /* LVGL任务最大睡眠时间 */
-        .timer_period_ms = 5      /* LVGL定时器周期 */
-    };
+    // const lvgl_port_cfg_t lvgl_cfg = {
+    //     .task_priority = 1,       /* LVGL任务优先级 */
+    //     .task_stack = 1024 * 5,       /* LVGL任务栈大小 */
+    //     .task_affinity = 0,      /* LVGL任务核心绑定(-1表示不绑定) */
+    //     .task_max_sleep_ms = 50, /* LVGL任务最大睡眠时间 */
+    //     .timer_period_ms = 5      /* LVGL定时器周期 */
+    // };
     ESP_RETURN_ON_ERROR(lvgl_port_init(&lvgl_cfg), TAG, "LVGL port initialization failed");
     
     /* 添加LCD屏幕 */
@@ -539,15 +552,15 @@ void Menu_Screen_Init(void)
     lv_label_set_text(menu_title, "Menu");
     lv_obj_set_style_text_color(menu_title, lv_color_hex(0xFFFFFF), LV_PART_MAIN);
     lv_obj_set_style_text_font(menu_title, &lv_font_montserrat_14, LV_PART_MAIN);
-    lv_obj_align(menu_title, LV_ALIGN_TOP_MID, 0, 20);
+    lv_obj_align(menu_title, LV_ALIGN_TOP_MID, 0, 0);
     
     /* 创建菜单容器 */
     lv_obj_t* menu_container = lv_obj_create(Menu_Screen);
-    lv_obj_set_size(menu_container, RYAN_LCD_H_RES - 40, RYAN_LCD_V_RES - 100);
-    lv_obj_align(menu_container, LV_ALIGN_CENTER, 0, 20);
+    lv_obj_set_size(menu_container, RYAN_LCD_H_RES - 10, RYAN_LCD_V_RES - 50);
+    lv_obj_align(menu_container, LV_ALIGN_CENTER, 0, 5);
     lv_obj_set_style_bg_color(menu_container, lv_color_hex(0x2D2D2D), LV_PART_MAIN);
     lv_obj_set_style_border_width(menu_container, 0, LV_PART_MAIN);
-    lv_obj_set_style_radius(menu_container, 10, LV_PART_MAIN);
+    lv_obj_set_style_radius(menu_container, 20, LV_PART_MAIN);
     
     /* 创建菜单项列表 */
     static const char* menu_items[] = {
@@ -560,10 +573,17 @@ void Menu_Screen_Init(void)
         "Stopwatch",
         "About"
     };
-    
-    // static const char* menu_icons[] = {
-    //     "⚙️", "❤️", "🎵", "☀️", "📅", "🧮", "⏱️", "ℹ️"
-    // };
+
+    static const char* menu_icons[] = {
+        LV_SYMBOL_SETTINGS,
+        LV_SYMBOL_EYE_OPEN,
+        LV_SYMBOL_AUDIO,
+        LV_SYMBOL_WIFI,
+        LV_SYMBOL_EDIT,
+        LV_SYMBOL_KEYBOARD,
+        LV_SYMBOL_USB,
+        LV_SYMBOL_WARNING
+    };
     
     /* 创建菜单项 */
     for(int i = 0; i < 8; i++) {
@@ -578,44 +598,25 @@ void Menu_Screen_Init(void)
         lv_obj_set_style_pad_all(menu_item, 10, LV_PART_MAIN);
         
         /* 添加图标 */
-        // lv_obj_t* icon_label = lv_label_create(menu_item);
-        // lv_label_set_text(icon_label, menu_icons[i]);
-        // lv_obj_set_style_text_font(icon_label, &lv_font_montserrat_14, LV_PART_MAIN);
-        // lv_obj_align(icon_label, LV_ALIGN_LEFT_MID, 15, 0);
+        lv_obj_t* icon_label = lv_label_create(menu_item);
+        lv_label_set_text(icon_label, menu_icons[i]);
+        lv_obj_set_style_text_color(icon_label, lv_color_hex(0xffffff), LV_PART_MAIN);
+        lv_obj_set_style_text_font(icon_label, &lv_font_montserrat_14, LV_PART_MAIN);
+        lv_obj_align(icon_label, LV_ALIGN_LEFT_MID, 15, 0);
         
         /* 添加菜单项文本 */
         lv_obj_t* item_label = lv_label_create(menu_item);
         lv_label_set_text(item_label, menu_items[i]);
-        lv_obj_set_style_text_color(item_label, lv_color_hex(0xFFFFFF), LV_PART_MAIN);
+        lv_obj_set_style_text_color(item_label, lv_color_hex(0xffffff), LV_PART_MAIN);
         lv_obj_set_style_text_font(item_label, &lv_font_montserrat_14, LV_PART_MAIN);
         lv_obj_align(item_label, LV_ALIGN_LEFT_MID, 60, 0);
         
-        // /* 添加右侧箭头 */
-        // lv_obj_t* arrow_label = lv_label_create(menu_item);
-        // lv_label_set_text(arrow_label, "->");
-        // lv_obj_set_style_text_font(arrow_label, &lv_font_montserrat_14, LV_PART_MAIN);
-        // lv_obj_align(arrow_label, LV_ALIGN_RIGHT_MID, -15, 0);
-        
         /* 添加点击事件 */
-        // lv_obj_add_event_cb(menu_item, menu_item_event_handler, LV_EVENT_CLICKED, (void*)(intptr_t)i);
+        lv_obj_add_event_cb(menu_item, menu_item_event_handler, LV_EVENT_CLICKED, (void*)(intptr_t)i);
     }
-    
-    // /* 添加返回按钮 */
-    // lv_obj_t* back_btn = lv_btn_create(Menu_Screen);
-    // lv_obj_set_size(back_btn, 120, 40);
-    // lv_obj_align(back_btn, LV_ALIGN_BOTTOM_MID, 0, -20);
-    // lv_obj_set_style_bg_color(back_btn, lv_color_hex(0x007AFF), LV_PART_MAIN);
-    // lv_obj_set_style_radius(back_btn, 20, LV_PART_MAIN);
-    
-    // lv_obj_t* back_label = lv_label_create(back_btn);
-    // lv_label_set_text(back_label, "返回");
-    // lv_obj_set_style_text_color(back_label, lv_color_hex(0xFFFFFF), LV_PART_MAIN);
-    // lv_obj_center(back_label);
-    
-    // lv_obj_add_event_cb(back_btn, menu_back_event_handler, LV_EVENT_CLICKED, NULL);
-    
-    // /* 添加屏幕返回事件（手势返回） */
-    // lv_obj_add_event_cb(Menu_Screen, menu_screen_gesture_handler, LV_EVENT_GESTURE, NULL);
+
+    //子屏幕初始化
+    Setting_Screen_Init();
 }
 
 /* 菜单项点击事件处理函数 */
@@ -634,27 +635,36 @@ static void menu_item_event_handler(lv_event_t* e)
     switch(menu_index) {
         case 0: // 设置
             // 打开设置界面
+            printf("打开设置界面\n");
+            lv_screen_load_anim(Setting_Screen, LV_SCR_LOAD_ANIM_MOVE_LEFT, 100, 0, NULL);
             break;
         case 1: // 健康
             // 打开健康界面
+            printf("打开健康界面\n");
             break;
         case 2: // 音乐
             // 打开音乐界面
+            printf("打开音乐界面\n");
             break;
         case 3: // 天气
             // 打开天气界面
+            printf("打开天气界面\n");
             break;
         case 4: // 日历
             // 打开日历界面
+            printf("打开日历界面\n");
             break;
         case 5: // 计算器
             // 打开计算器界面
+            printf("打开计算器界面\n");
             break;
         case 6: // 秒表
             // 打开秒表界面
+            printf("打开秒表界面\n");
             break;
         case 7: // 关于
             // 打开关于界面
+            printf("打开关于界面\n");
             break;
     }
 }
@@ -670,16 +680,40 @@ static void menu_back_event_handler(lv_event_t* e)
     }
 }
 
+
+
 /* 菜单屏幕手势处理函数 */
-// static void menu_screen_gesture_handler(lv_event_t* e)
-// {
-//     lv_event_code_t code = lv_event_get_code(e);
-//     if(code == LV_EVENT_GESTURE) {
-//         lv_dir_t dir = lv_indev_get_gesture_dir(lv_indev_active());
-//         if(dir == LV_DIR_LEFT) {
-//             ESP_LOGI(TAG, "向左滑动，返回表盘");
-//             lv_screen_load_anim(Watch_Screen, LV_SCR_LOAD_ANIM_SLIDE_RIGHT, 200, 0, NULL);
-//         }
-//     }
-// }
+static void menu_screen_gesture_handler(lv_event_t* e)
+{
+    lv_event_code_t code = lv_event_get_code(e);
+    if(code == LV_EVENT_GESTURE) {
+        lv_dir_t dir = lv_indev_get_gesture_dir(lv_indev_active());
+        if(dir == LV_DIR_LEFT) {
+            ESP_LOGI(TAG, "向左滑动，返回表盘");
+            lv_screen_load_anim(Watch_Screen, LV_SCR_LOAD_ANIM_MOVE_LEFT, 100, 0, NULL);
+        }
+    }
+}
+
+/* 菜单屏幕手势处理函数 */
+static void Setting_Screen_Gesture_Handler(lv_event_t* e)
+{
+    lv_event_code_t code = lv_event_get_code(e);
+    if(code == LV_EVENT_GESTURE) {
+        lv_dir_t dir = lv_indev_get_gesture_dir(lv_indev_active());
+        if(dir == LV_DIR_RIGHT) {
+            ESP_LOGI(TAG, "向左滑动，返回设置");
+            lv_screen_load_anim(Menu_Screen, LV_SCR_LOAD_ANIM_MOVE_RIGHT, 100, 0, NULL);
+        }
+    }
+}
+void Setting_Screen_Init(void)
+{
+    Setting_Screen = lv_obj_create(NULL);
+    lv_obj_set_size(Setting_Screen, lv_pct(100), lv_pct(100));
+    lv_obj_set_style_bg_color(Setting_Screen, lv_color_hex(0x000000), LV_PART_MAIN);
+
+    //返回手势
+    lv_obj_add_event_cb(Setting_Screen, Setting_Screen_Gesture_Handler, LV_EVENT_GESTURE, NULL);
+}
 

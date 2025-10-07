@@ -88,6 +88,7 @@ void Screen_Task(void *pvParameters);
 
 /* 全局变量声明 */
 extern lv_display_t *lvgl_disp;
+extern lvgl_port_cfg_t lvgl_cfg;
 
 
 

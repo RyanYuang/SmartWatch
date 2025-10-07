@@ -26,26 +26,12 @@ static const char *TAG = "LVGL";
 
 #define ESP_LVGL_PORT_TASK_MUX_DELAY_MS    10000
 
-/*******************************************************************************
-* Types definitions
-*******************************************************************************/
 
-typedef struct lvgl_port_ctx_s {
-    TaskHandle_t        lvgl_task;
-    SemaphoreHandle_t   lvgl_mux;
-    SemaphoreHandle_t   timer_mux;
-    EventGroupHandle_t  lvgl_events;
-    SemaphoreHandle_t   task_init_mux;
-    esp_timer_handle_t  tick_timer;
-    bool                running;
-    int                 task_max_sleep_ms;
-    int                 timer_period_ms;
-} lvgl_port_ctx_t;
 
 /*******************************************************************************
 * Local variables
 *******************************************************************************/
-static lvgl_port_ctx_t lvgl_port_ctx;
+lvgl_port_ctx_t lvgl_port_ctx;
 
 /*******************************************************************************
 * Function definitions
