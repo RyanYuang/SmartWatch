@@ -68,6 +68,7 @@ void Init_Task(void* pvParament)
 
     //创建RTC时钟更新任务
     xTaskCreate(RTC_Update_Task,"RTC_Update_Task",2048*2,NULL,1,&RTC_Update_Task_Handle);
+    vTaskSuspend(RTC_Update_Task);
     // 创建任务
     xTaskCreate(&RTC_Task, "RTC_Task", 2560, NULL, 2, &RTC_Task_Handle);
     // 创建屏幕任务

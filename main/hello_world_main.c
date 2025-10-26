@@ -128,6 +128,7 @@ void app_main(void) {
     // 初始化任务
     xTaskCreate(Init_Task, "Init_Task", 1024 * 5, NULL, 1, NULL);
     ESP_LOGI(TAG, "app_main initialization completed");
+    
 }
 
 /* 
